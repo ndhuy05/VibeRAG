@@ -1,0 +1,31 @@
+import requests
+
+file_path = r"C:\Users\PC\OneDrive\z. Coding shit\APItheMeal\valid_ids.txt"
+
+meal_ids = []
+
+# Tập ký tự để test
+characters_to_test = (
+    "abcdefghijklmnopqrstuvwxyz"     # chữ thường
+    "0123456789"                     # số
+)
+
+for ch in characters_to_test:
+    url = f'https://www.themealdb.com/api/json/v1/1/search.php?f={ch}'
+    response = requests.get(url)
+    
+    meals = response.json().get('meals', None)
+
+    if meals:
+        print(f"[FOUND] Ký tự '{ch}' → {len(meals)} món")
+        for meal in meals:
+            meal_ids.append(meal['idMeal'])
+    else:
+        print(f"[NULL] Ký tự '{ch}' không có món nào")
+
+# Ghi vào file txt
+with open(file_path, 'w', encoding="utf-8") as f:
+    for meal_id in meal_ids:
+        f.write(meal_id + "\n")
+
+print("\nDone! All valid IDs saved.")
