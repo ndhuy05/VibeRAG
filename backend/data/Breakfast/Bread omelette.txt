@@ -1,0 +1,14 @@
+Tên món ăn: Bread omelette
+Category: Breakfast
+Nguồn Gốc: Indian
+
+Nguyên liệu:
+Bread: 2
+Egg: 2
+Salt: 0.5
+
+Công thức:
+Make and enjoy
+
+Youtube:
+N/A

@@ -1,0 +1,29 @@
+import os
+from pathlib import Path
+
+# Base directory
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
+
+# FAISS settings
+FAISS_INDEX_PATH = BASE_DIR / "faiss_index"
+FAISS_INDEX_FILE = FAISS_INDEX_PATH / "meal_index.faiss"
+MEALS_DATA_FILE = FAISS_INDEX_PATH / "meals_data.json"
+
+# Embedding model
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+# API settings
+API_HOST = "0.0.0.0"
+API_PORT = 8000
+
+# Search settings
+DEFAULT_TOP_K = 5
+MAX_TOP_K = 20
+
+# Ensure directories exist
+FAISS_INDEX_PATH.mkdir(exist_ok=True)
+
+# Gemini API settings
+GEMINI_API_KEY = "AIzaSyAdQg_J1Mc6rho5aQ4hqz5S2keTPIE99AY"
+GEMINI_MODEL = "gemini-2.5-flash"
