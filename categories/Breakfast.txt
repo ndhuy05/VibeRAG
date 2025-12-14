@@ -1,0 +1,13 @@
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53076, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52965, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52895, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52957, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52896, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52967, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53331, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53118, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52962, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52964, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53165, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53114, Breakfast
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53225, Breakfast

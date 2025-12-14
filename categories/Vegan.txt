@@ -1,0 +1,7 @@
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53092, Vegan
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53150, Vegan
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53115, Vegan
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52942, Vegan
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=53250, Vegan
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52794, Vegan
+https://www.themealdb.com/api/json/v1/1/lookup.php?i=52775, Vegan
