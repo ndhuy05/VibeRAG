@@ -1,6 +1,0 @@
-https://www.themealdb.com/api/json/v1/1/lookup.php?i=53169, Starter
-https://www.themealdb.com/api/json/v1/1/lookup.php?i=52842, Starter
-https://www.themealdb.com/api/json/v1/1/lookup.php?i=52840, Starter
-https://www.themealdb.com/api/json/v1/1/lookup.php?i=52779, Starter
-https://www.themealdb.com/api/json/v1/1/lookup.php?i=52841, Starter
-https://www.themealdb.com/api/json/v1/1/lookup.php?i=53173, Starter
