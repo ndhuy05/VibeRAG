@@ -50,3 +50,4 @@ class ChatResponse(BaseModel):
     response: str
     meals_used: List[Meal]
     scores: List[float]
+    audio_path: Optional[str] = Field(default=None, description="Path to generated audio file (if audio enabled)")

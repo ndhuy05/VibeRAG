@@ -5,6 +5,7 @@ from models import ChatRequest, ChatResponse
 from vector_db import MealVectorDB
 from data_parser import parse_all_meals
 from gemini_service import GeminiService
+from text_audio import TextToAudioService
 import config
 
 # Initialize FastAPI app
@@ -26,6 +27,7 @@ app.add_middleware(
 # Initialize vector database and Gemini service
 vector_db = MealVectorDB()
 gemini_service = GeminiService()
+tts_service = TextToAudioService()
 
 @app.on_event("startup")
 async def startup_event():
@@ -90,11 +92,20 @@ async def chat_with_ai(request: ChatRequest):
         if not results:
             # No meals found - generate a simple response
             response_text = gemini_service.generate_simple_response(request.query)
+            
+            # Automatically generate audio from response
+            try:
+                audio_path = tts_service.generate_audio(response_text)
+            except Exception as audio_error:
+                print(f"Warning: Audio generation failed: {audio_error}")
+                audio_path = None
+            
             return ChatResponse(
                 query=request.query,
                 response=response_text,
                 meals_used=[],
-                scores=[]
+                scores=[],
+                audio_path=audio_path
             )
         
         # Extract meals and scores
@@ -108,11 +119,19 @@ async def chat_with_ai(request: ChatRequest):
             scores=scores
         )
         
+        # Automatically generate audio from response
+        try:
+            audio_path = tts_service.generate_audio(response_text)
+        except Exception as audio_error:
+            print(f"Warning: Audio generation failed: {audio_error}")
+            audio_path = None
+        
         return ChatResponse(
             query=request.query,
             response=response_text,
             meals_used=meals,
-            scores=scores
+            scores=scores,
+            audio_path=audio_path
         )
     
     except Exception as e:
