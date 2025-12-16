@@ -9,14 +9,15 @@ import { VoiceRecorder } from "./VoiceRecorder";
 
 interface ChatInputProps {
   onSendMessage?: (message: string, image?: File) => void;
+  disabled?: boolean;
 }
 
-export function ChatInput({ onSendMessage }: ChatInputProps) {
+export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const handleSend = () => {
-    if (message.trim() || selectedImage) {
+    if ((message.trim() || selectedImage) && !disabled) {
       console.log("Send:", message, selectedImage);
       onSendMessage?.(message, selectedImage || undefined);
       setMessage("");
@@ -59,10 +60,11 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
 
           {/* Textarea */}
           <Textarea
-            placeholder="Nhập tin nhắn của bạn..."
+            placeholder={disabled ? "Đang xử lý..." : "Nhập tin nhắn của bạn..."}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={1}
+            disabled={disabled}
             className="min-h-0 max-h-[200px] resize-none bg-transparent border-0 px-2 py-1.5 pr-12 focus-visible:ring-0 focus-visible:ring-offset-0 overflow-hidden flex-1 shadow-none focus:shadow-none"
             style={{
               height: "auto",
@@ -85,7 +87,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
           <Button
             size="icon"
             className="h-9 w-9 rounded-full shrink-0"
-            disabled={!message.trim() && !selectedImage}
+            disabled={(!message.trim() && !selectedImage) || disabled}
             onClick={handleSend}
           >
             <Send className="h-4 w-4" />

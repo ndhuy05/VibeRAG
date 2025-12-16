@@ -11,8 +11,39 @@ import config
 # Initialize FastAPI app
 app = FastAPI(
     title="Meal RAG Chat API",
-    description="Chat with AI about meals and recipes using RAG with FAISS",
-    version="1.0.0"
+    description="""
+    🍳 **Meal RAG Chat API** - AI-powered cooking assistant
+
+    This API uses **Retrieval-Augmented Generation (RAG)** with FAISS vector search and Google Gemini AI
+    to help you find recipes and cooking information from a database of 570+ meals.
+
+    ## Features
+    - 🔍 Semantic search across 570+ recipes
+    - 🤖 AI-generated conversational responses
+    - 📝 Detailed ingredients and cooking instructions
+    - 🎥 YouTube video tutorials
+    - 🔊 Text-to-speech audio responses
+
+    ## How to use
+    1. Send a POST request to `/chat` with your query
+    2. Get AI-generated response with relevant recipes
+    3. Use the recipes to cook delicious meals!
+
+    ## Example Query
+    ```json
+    {
+      "query": "Find me a chicken curry recipe"
+    }
+    ```
+    """,
+    version="1.0.0",
+    contact={
+        "name": "Meal RAG Chat",
+        "url": "https://github.com/yourusername/VibeRAG",
+    },
+    license_info={
+        "name": "MIT",
+    }
 )
 
 # Add CORS middleware
@@ -47,17 +78,27 @@ async def startup_event():
         else:
             print("Warning: No meals found to index")
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post(
+    "/chat",
+    response_model=ChatResponse,
+    summary="Chat with AI about meals and recipes",
+    description="""
+    Send a natural language query about meals or recipes and get AI-generated responses
+    with relevant meal recommendations.
+
+    The system uses:
+    - **FAISS vector search** to find semantically similar meals
+    - **Google Gemini AI** to generate conversational responses
+    - **570+ meal database** with detailed recipes and instructions
+
+    You can optionally filter by category (Chicken, Beef, Vegetarian, etc.) and
+    control the number of meals returned.
+    """,
+    response_description="AI response with relevant meals and cooking instructions",
+    tags=["Chat"]
+)
 async def chat_with_ai(request: ChatRequest):
-    """
-    Chat with AI about meals and recipes.
-    
-    The AI will search for relevant meals and provide a conversational response.
-    
-    - **query**: Your question about meals or recipes
-    - **max_meals**: Number of meals to use as context (default: 3)
-    - **category**: Optional filter by category
-    """
+    """Chat endpoint - Ask anything about meals and recipes"""
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     

@@ -74,13 +74,13 @@ export function RecipeCard({
         {/* Steps */}
         <div>
           <h4 className="font-semibold mb-2">Cách làm</h4>
-          <ol className="space-y-2 ml-6">
+          <div className="space-y-2">
             {steps.map((step, index) => (
-              <li key={index} className="text-sm list-decimal">
+              <p key={index} className="text-sm leading-relaxed">
                 {step}
-              </li>
+              </p>
             ))}
-          </ol>
+          </div>
         </div>
       </CardContent>
     </Card>

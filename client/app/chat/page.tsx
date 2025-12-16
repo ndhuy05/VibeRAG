@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatMessages } from "@/components/chat/ChatMessages";
 import { ChatInput } from "@/components/chat/ChatInput";
+import { chatAPI } from "@/services/api";
+import type { Message, BackendMeal } from "@/types/chat";
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messageIdCounter = useRef(1);
 
   const chatHistory = [
     { id: 1, title: "Công thức nấu Phở Bò", timestamp: "2 giờ trước" },
@@ -15,89 +20,93 @@ export default function ChatPage() {
     { id: 3, title: "Món ăn chay cho người mới", timestamp: "3 ngày trước" },
   ];
 
-  const messages = [
-    {
-      id: 1,
-      role: "user" as const,
-      content: "Xin chào! Bạn có thể giúp tôi tìm công thức nấu ăn không?",
-      type: "text" as const,
-    },
-    {
-      id: 2,
-      role: "assistant" as const,
-      content:
-        "Chào bạn! Tất nhiên rồi, tôi rất vui được giúp bạn tìm công thức nấu ăn. Bạn muốn nấu món gì hôm nay?",
-      type: "text" as const,
-    },
-    {
-      id: 3,
-      role: "user" as const,
-      content: "Tôi muốn học cách làm món phở bò truyền thống",
-      type: "text" as const,
-    },
-    {
-      id: 4,
-      role: "assistant" as const,
-      content: "Tuyệt vời! Đây là công thức phở bò truyền thống:",
-      type: "text" as const,
-    },
-    {
-      id: 5,
-      role: "assistant" as const,
-      type: "recipe" as const,
-      recipe: {
-        title: "Phở Bò Truyền Thống",
-        ingredients: [
-          "1kg xương ống, xương gối",
-          "500g thịt bò (nạm, gân)",
-          "500g bánh phở tươi",
-          "2 củ hành tây",
-          "1 củ gừng (khoảng 50g)",
-          "3 cây hành lá",
-          "Gia vị: 2 hoa hồi, 1 thanh quế, 2 quả thảo quả",
-          "Nước mắm, muối, đường",
-        ],
-        steps: [
-          "Ninh xương trong 3-4 tiếng với lửa nhỏ để có nước dùng trong",
-          "Rang gừng và hành tây cho thơm, cho vào nồi nước dùng",
-          "Cho gia vị (hồi, quế, thảo quả) vào túi vải, thả vào nồi",
-          "Luộc thịt bò riêng, sau đó thái mỏng",
-          "Trụng bánh phở trong nước sôi",
-          "Bày bánh phở vào tô, xếp thịt bò lên trên",
-          "Chan nước dùng nóng, rắc hành lá và ngò gai",
-        ],
-        prepTime: "4 giờ",
-        servings: 4,
-        difficulty: "Trung bình" as const,
-      },
-    },
-    {
-      id: 6,
-      role: "assistant" as const,
-      type: "nutrition" as const,
-      nutrition: {
-        calories: 450,
-        protein: 35,
-        carbs: 55,
-        fat: 12,
-        servings: 1,
-      },
-    },
-    {
-      id: 7,
-      role: "assistant" as const,
-      content: "Bạn có thể xem video hướng dẫn chi tiết tại đây:",
-      type: "text" as const,
-    },
-    {
-      id: 8,
-      role: "assistant" as const,
-      type: "video" as const,
-      video: {
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      },
-    },
-  ];
+  // Helper function to extract steps from recipe text
+  const extractSteps = (recipe: string): string[] => {
+    return recipe
+      .split(/\r?\n/)
+      .filter(step => step.trim().length > 0)
+      .map(step => step.trim());
+  };
+
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: messageIdCounter.current++,
+      role: "user",
+      type: "text",
+      content: messageText,
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      // Call API
+      const response = await chatAPI.sendMessage(messageText);
+
+      // Add recipes if available
+      if (response.meals_used && response.meals_used.length > 0) {
+        // Add AI response text - short and simple
+        const aiTextMessage: Message = {
+          id: messageIdCounter.current++,
+          role: "assistant",
+          type: "text",
+          content: `Đây là ${response.meals_used.length} món ăn phù hợp với yêu cầu của bạn:`,
+        };
+        setMessages(prev => [...prev, aiTextMessage]);
+
+        response.meals_used.forEach((meal: BackendMeal) => {
+          // Add recipe card
+          const recipeMessage: Message = {
+            id: messageIdCounter.current++,
+            role: "assistant",
+            type: "recipe",
+            recipe: {
+              title: meal.name,
+              ingredients: meal.ingredients.map(ing => `${ing.quantity} ${ing.name}`),
+              steps: extractSteps(meal.recipe),
+              difficulty: "Trung bình",
+            },
+          };
+          setMessages(prev => [...prev, recipeMessage]);
+
+          // Add video if available
+          if (meal.youtube_url) {
+            const videoMessage: Message = {
+              id: messageIdCounter.current++,
+              role: "assistant",
+              type: "video",
+              video: {
+                url: meal.youtube_url,
+              },
+            };
+            setMessages(prev => [...prev, videoMessage]);
+          }
+        });
+      } else {
+        // No meals found - show AI response
+        const aiTextMessage: Message = {
+          id: messageIdCounter.current++,
+          role: "assistant",
+          type: "text",
+          content: response.response || "Xin lỗi, tôi không tìm thấy món ăn phù hợp với yêu cầu của bạn.",
+        };
+        setMessages(prev => [...prev, aiTextMessage]);
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: Message = {
+        id: messageIdCounter.current++,
+        role: "assistant",
+        type: "text",
+        content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -109,9 +118,9 @@ export default function ChatPage() {
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <ChatMessages messages={messages} />
+        <ChatMessages messages={messages} isLoading={isLoading} />
 
-        <ChatInput />
+        <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
       </div>
     </div>
   );
