@@ -27,3 +27,31 @@ export const chatAPI = {
     }
   },
 };
+
+export const ttsAPI = {
+  async textToSpeech(text: string, language: string = 'en-US'): Promise<string> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/text-to-speech`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          language: language,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`TTS API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Return full URL to audio file
+      return `${API_BASE_URL}${data.audio_url}`;
+    } catch (error) {
+      console.error('Error calling TTS API:', error);
+      throw error;
+    }
+  },
+};
