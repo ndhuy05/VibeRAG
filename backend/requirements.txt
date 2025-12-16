@@ -8,4 +8,8 @@ numpy>=1.24.0
 torch>=2.0.0
 google-generativeai>=0.3.0
 requests>=2.31.0
+<<<<<<< HEAD
 Pillow>=10.0.0
+=======
+gtts>=2.3.0
+>>>>>>> f92b49997ed371f7a390ff61859450aecb7175c8

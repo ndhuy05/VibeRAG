@@ -1,17 +1,56 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
+<<<<<<< HEAD
 from models import ChatRequest, ChatResponse, ImageDetectionRequest, ImageDetectionResponse
+=======
+from models import ChatRequest, ChatResponse, TextToSpeechRequest, TextToSpeechResponse
+>>>>>>> f92b49997ed371f7a390ff61859450aecb7175c8
 from vector_db import MealVectorDB
 from data_parser import parse_all_meals
 from gemini_service import GeminiService
+from text_audio import TextToAudioService
 import config
 
 # Initialize FastAPI app
 app = FastAPI(
     title="Meal RAG Chat API",
-    description="Chat with AI about meals and recipes using RAG with FAISS",
-    version="1.0.0"
+    description="""
+    🍳 **Meal RAG Chat API** - AI-powered cooking assistant
+
+    This API uses **Retrieval-Augmented Generation (RAG)** with FAISS vector search and Google Gemini AI
+    to help you find recipes and cooking information from a database of 570+ meals.
+
+    ## Features
+    - 🔍 Semantic search across 570+ recipes
+    - 🤖 AI-generated conversational responses
+    - 📝 Detailed ingredients and cooking instructions
+    - 🎥 YouTube video tutorials
+    - 🔊 Text-to-speech audio responses
+
+    ## How to use
+    1. Send a POST request to `/chat` with your query
+    2. Get AI-generated response with relevant recipes
+    3. Use the recipes to cook delicious meals!
+
+    ## Example Query
+    ```json
+    {
+      "query": "Find me a chicken curry recipe"
+    }
+    ```
+    """,
+    version="1.0.0",
+    contact={
+        "name": "Meal RAG Chat",
+        "url": "https://github.com/yourusername/VibeRAG",
+    },
+    license_info={
+        "name": "MIT",
+    }
 )
 
 # Add CORS middleware
@@ -26,6 +65,7 @@ app.add_middleware(
 # Initialize vector database and Gemini service
 vector_db = MealVectorDB()
 gemini_service = GeminiService()
+tts_service = TextToAudioService()
 
 @app.on_event("startup")
 async def startup_event():
@@ -44,18 +84,34 @@ async def startup_event():
             print("Index built and saved")
         else:
             print("Warning: No meals found to index")
+    
+    # Mount static files for audio output
+    audio_dir = "audio_output"
+    if os.path.exists(audio_dir):
+        app.mount("/audio", StaticFiles(directory=audio_dir), name="audio")
+        print(f"Mounted audio files from {audio_dir}")
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post(
+    "/chat",
+    response_model=ChatResponse,
+    summary="Chat with AI about meals and recipes",
+    description="""
+    Send a natural language query about meals or recipes and get AI-generated responses
+    with relevant meal recommendations.
+
+    The system uses:
+    - **FAISS vector search** to find semantically similar meals
+    - **Google Gemini AI** to generate conversational responses
+    - **570+ meal database** with detailed recipes and instructions
+
+    You can optionally filter by category (Chicken, Beef, Vegetarian, etc.) and
+    control the number of meals returned.
+    """,
+    response_description="AI response with relevant meals and cooking instructions",
+    tags=["Chat"]
+)
 async def chat_with_ai(request: ChatRequest):
-    """
-    Chat with AI about meals and recipes.
-    
-    The AI will search for relevant meals and provide a conversational response.
-    
-    - **query**: Your question about meals or recipes
-    - **max_meals**: Number of meals to use as context (default: 3)
-    - **category**: Optional filter by category
-    """
+    """Chat endpoint - Ask anything about meals and recipes"""
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     
@@ -90,6 +146,7 @@ async def chat_with_ai(request: ChatRequest):
         if not results:
             # No meals found - generate a simple response
             response_text = gemini_service.generate_simple_response(request.query)
+            
             return ChatResponse(
                 query=request.query,
                 response=response_text,
@@ -118,6 +175,7 @@ async def chat_with_ai(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
+<<<<<<< HEAD
 @app.post("/detect-ingredients", response_model=ImageDetectionResponse)
 async def detect_ingredients(request: ImageDetectionRequest):
     """
@@ -189,6 +247,51 @@ async def detect_ingredients(request: ImageDetectionRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ingredient detection failed: {str(e)}")
+=======
+@app.post(
+    "/text-to-speech",
+    response_model=TextToSpeechResponse,
+    summary="Convert text to speech",
+    description="""
+    Convert text to speech audio file. The frontend should call this endpoint
+    when the user clicks the audio icon to play the response.
+    
+    The text will be preprocessed to remove markdown formatting and expand
+    abbreviations for natural-sounding speech.
+    
+    Returns the path to the generated audio file which can be played immediately.
+    """,
+    response_description="Audio file information with path for playback",
+    tags=["Text-to-Speech"]
+)
+async def text_to_speech(request: TextToSpeechRequest):
+    """Convert text to speech on-demand"""
+    if not request.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    
+    try:
+        # Generate audio from the provided text
+        audio_path = tts_service.generate_audio(
+            text=request.text,
+            language_code=request.language
+        )
+        
+        # Extract filename from path
+        filename = os.path.basename(audio_path)
+        
+        # Generate URL for frontend to access the audio
+        audio_url = f"/audio/{filename}"
+        
+        return TextToSpeechResponse(
+            audio_path=audio_path,
+            audio_url=audio_url,
+            filename=filename,
+            text_length=len(request.text)
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS conversion failed: {str(e)}")
+>>>>>>> f92b49997ed371f7a390ff61859450aecb7175c8
 
 if __name__ == "__main__":
     import uvicorn
