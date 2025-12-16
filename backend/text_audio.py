@@ -1,22 +1,16 @@
 import re
 import os
-import wave
 from typing import Optional
-from google import genai
-from google.genai import types
-import config
+from gtts import gTTS
 
 
 class TextToAudioService:
     
-    def __init__(self, api_key: str = None, output_dir: str = "audio_output"):
-        self.api_key = api_key or config.GEMINI_API_KEY
+    def __init__(self, output_dir: str = "audio_output"):
         self.output_dir = output_dir
         
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        
-        self.client = None
         
     def preprocess_text_for_speech(self, text: str) -> str:
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
@@ -66,48 +60,45 @@ class TextToAudioService:
         self, 
         text: str, 
         filename: Optional[str] = None,
-        voice_name: str = "Achernar",
+        voice_name: str = "Achernar",  # Kept for backward compatibility, not used
         language_code: str = "en-US",
-        prompt: Optional[str] = None
+        prompt: Optional[str] = None  # Kept for backward compatibility, not used
     ) -> str:
+        """
+        Generate audio from text using gTTS (Google Text-to-Speech).
+        
+        Args:
+            text: The text to convert to speech
+            filename: Output filename (optional)
+            voice_name: Kept for backward compatibility, not used with gTTS
+            language_code: Language code (e.g., 'en-US', 'vi', 'en', 'es')
+            prompt: Kept for backward compatibility, not used with gTTS
+            
+        Returns:
+            Path to the generated audio file
+        """
         processed_text = self.preprocess_text_for_speech(text)
         
         if filename is None:
             import time
             filename = f"response_{int(time.time())}"
         
-        if not filename.endswith('.wav'):
-            filename += '.wav'
+        # gTTS outputs mp3 by default, but we'll convert the extension
+        if not filename.endswith('.mp3'):
+            filename += '.mp3'
         
         output_path = os.path.join(self.output_dir, filename)
         
         try:
-            from google import genai
-            from google.genai import types
-            
-            client = genai.Client(api_key=self.api_key)
+            # Convert language code from 'en-US' format to 'en' format for gTTS
+            lang = language_code.split('-')[0] if '-' in language_code else language_code
             
             print(f"[TTS] Generating audio for text: {processed_text[:100]}...")
-            print(f"[TTS] Using voice: {voice_name}")
+            print(f"[TTS] Using language: {lang}")
             
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-preview-tts",
-                contents=processed_text,
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=types.SpeechConfig(
-                        voice_config=types.VoiceConfig(
-                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                voice_name=voice_name,
-                            )
-                        )
-                    ),
-                )
-            )
-            
-            audio_data = response.candidates[0].content.parts[0].inline_data.data
-            
-            self._save_wav_file(output_path, audio_data)
+            # Generate speech using gTTS
+            tts = gTTS(text=processed_text, lang=lang, slow=False)
+            tts.save(output_path)
             
             print(f"[TTS] Successfully created audio file: {output_path}")
             return output_path
@@ -115,14 +106,6 @@ class TextToAudioService:
         except Exception as e:
             print(f"[TTS Error] Failed to generate audio: {str(e)}")
             raise Exception(f"Failed to generate audio: {str(e)}")
-    
-    def _save_wav_file(self, filepath: str, pcm_data: bytes, channels: int = 1, 
-                       rate: int = 24000, sample_width: int = 2):
-        with wave.open(filepath, "wb") as wf:
-            wf.setnchannels(channels)
-            wf.setsampwidth(sample_width)
-            wf.setframerate(rate)
-            wf.writeframes(pcm_data)
 
 
 
