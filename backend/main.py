@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import ChatRequest, ChatResponse
+from models import ChatRequest, ChatResponse, ImageDetectionRequest, ImageDetectionResponse
 from vector_db import MealVectorDB
 from data_parser import parse_all_meals
 from gemini_service import GeminiService
@@ -117,6 +117,78 @@ async def chat_with_ai(request: ChatRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+
+@app.post("/detect-ingredients", response_model=ImageDetectionResponse)
+async def detect_ingredients(request: ImageDetectionRequest):
+    """
+    Detect ingredients from a food image and find matching meals.
+    
+    Uses Gemini Vision API to analyze the image and extract ingredients,
+    then searches for relevant meals using the RAG system.
+    
+    - **image**: Base64-encoded image data (JPEG, PNG, etc.)
+    - **max_meals**: Number of meals to return (default: 3)
+    - **category**: Optional filter by category
+    """
+    if not request.image.strip():
+        raise HTTPException(status_code=400, detail="Image data cannot be empty")
+    
+    if vector_db.index is None:
+        raise HTTPException(status_code=503, detail="Search index not initialized")
+    
+    try:
+        # Step 1: Detect ingredients from image using Gemini Vision
+        detected_ingredients = gemini_service.detect_ingredients_from_image(request.image)
+        
+        if not detected_ingredients:
+            raise HTTPException(
+                status_code=400, 
+                detail="Could not detect any ingredients in the image. Please upload a clearer food image."
+            )
+        
+        # Step 2: Search for relevant meals using detected ingredients
+        results = vector_db.search(
+            query_ingredients=detected_ingredients,
+            top_k=request.max_meals,
+            category_filter=request.category
+        )
+        
+        if not results:
+            # No meals found - generate a simple response
+            response_text = gemini_service.generate_simple_response(
+                f"I detected these ingredients: {', '.join(detected_ingredients)}. "
+                "However, I couldn't find any matching meals in the database."
+            )
+            return ImageDetectionResponse(
+                detected_ingredients=detected_ingredients,
+                response=response_text,
+                meals_used=[],
+                scores=[]
+            )
+        
+        # Step 3: Extract meals and scores
+        meals = [meal for meal, _ in results]
+        scores = [score for _, score in results]
+        
+        # Step 4: Generate AI response using Gemini
+        user_query = f"I have these ingredients: {', '.join(detected_ingredients)}. What can I make?"
+        response_text = gemini_service.generate_response(
+            user_query=user_query,
+            meals=meals,
+            scores=scores
+        )
+        
+        return ImageDetectionResponse(
+            detected_ingredients=detected_ingredients,
+            response=response_text,
+            meals_used=meals,
+            scores=scores
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ingredient detection failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

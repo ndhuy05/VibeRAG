@@ -6,6 +6,9 @@ import google.generativeai as genai
 from typing import List, Optional
 from models import Meal
 import config
+import base64
+from io import BytesIO
+from PIL import Image
 
 class GeminiService:
     """Service for generating AI responses using Gemini 2.5 Flash"""
@@ -112,6 +115,55 @@ Response:"""
         except Exception as e:
             return f"I encountered an error generating a response: {str(e)}\n\nHowever, I found these relevant meals based on your query:\n{context}"
 
+    def detect_ingredients_from_image(self, image_base64: str) -> List[str]:
+        """
+        Detect ingredients from a food image using Gemini Vision
+        
+        Args:
+            image_base64: Base64-encoded image data
+            
+        Returns:
+            List of detected ingredient names
+        """
+        try:
+            # Decode base64 image
+            image_data = base64.b64decode(image_base64)
+            image = Image.open(BytesIO(image_data))
+            
+            # Create prompt for ingredient detection
+            prompt = """Analyze this food image and identify all visible ingredients.
+
+Please list ONLY the ingredient names, one per line, without any numbering, bullets, or additional text.
+Focus on the main ingredients you can clearly identify.
+Be specific but concise (e.g., "chicken breast" not just "chicken").
+
+Return only the ingredient list, nothing else."""
+            
+            # Generate response using Gemini Vision
+            response = self.model.generate_content([prompt, image])
+            
+            # Parse the response to extract ingredients
+            ingredients_text = response.text.strip()
+            
+            # Split by newlines and clean up
+            ingredients = [
+                ing.strip().strip('-').strip('•').strip('*').strip()
+                for ing in ingredients_text.split('\n')
+                if ing.strip() and not ing.strip().startswith('#')
+            ]
+            
+            # Filter out empty strings and common non-ingredients
+            ingredients = [
+                ing for ing in ingredients 
+                if ing and len(ing) > 1 and not ing.lower() in ['ingredients', 'list', 'item', 'items']
+            ]
+            
+            return ingredients
+            
+        except Exception as e:
+            print(f"Error detecting ingredients from image: {e}")
+            return []
+    
     def generate_simple_response(self, user_query: str) -> str:
         """
         Generate response without meal context (for general questions)

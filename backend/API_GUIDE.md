@@ -11,9 +11,56 @@ Server will run at: **http://localhost:8000**
 
 ---
 
-## API Endpoint
+## API Endpoints
 
-### POST /chat
+### 1. POST /detect-ingredients (NEW!)
+
+**Detect ingredients from food images and get meal recommendations.**
+
+This endpoint uses **Gemini Vision AI** to analyze your food images, detect ingredients, and then find matching recipes.
+
+**URL:** `http://localhost:8000/detect-ingredients`
+
+**Method:** `POST`
+
+**Request Body:**
+```json
+{
+  "image": "base64_encoded_image_data",
+  "max_meals": 3,
+  "category": "Chicken"
+}
+```
+
+**Parameters:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `image` | string | ✅ Yes | Base64-encoded image data (JPEG, PNG, etc.) |
+| `max_meals` | integer | ❌ No | Number of meals to return (1-10, default: 3) |
+| `category` | string | ❌ No | Filter by category (Beef, Chicken, Vegetarian, etc.) |
+
+**Response:**
+```json
+{
+  "detected_ingredients": ["chicken breast", "garlic", "tomato", "onion"],
+  "response": "AI-generated suggestions based on detected ingredients...",
+  "meals_used": [
+    {
+      "name": "Honey Balsamic Chicken",
+      "category": "Chicken",
+      "origin": "American",
+      "ingredients": [...],
+      "recipe": "Full recipe instructions...",
+      "youtube_url": "https://youtube.com/..."
+    }
+  ],
+  "scores": [0.901, 0.854, 0.851]
+}
+```
+
+---
+
+### 2. POST /chat
 
 Ask questions about meals and get AI-powered responses.
 
@@ -63,7 +110,84 @@ Ask questions about meals and get AI-powered responses.
 
 ## Usage Examples
 
-### Using Python
+### Image Detection Endpoint Examples
+
+#### Using Python
+
+```python
+import requests
+import base64
+
+# Read and encode image
+with open("food_image.jpg", "rb") as image_file:
+    image_data = base64.b64encode(image_file.read()).decode()
+
+# Send request
+response = requests.post(
+    "http://localhost:8000/detect-ingredients",
+    json={
+        "image": image_data,
+        "max_meals": 3
+    }
+)
+
+result = response.json()
+print("Detected Ingredients:", result["detected_ingredients"])
+print("\nAI Response:", result["response"])
+print("\nMatching Meals:", [meal["name"] for meal in result["meals_used"]])
+```
+
+#### Using JavaScript (Fetch)
+
+```javascript
+async function detectIngredients(imageFile) {
+  // Convert image to base64
+  const reader = new FileReader();
+  reader.readAsDataURL(imageFile);
+  
+  reader.onload = async function() {
+    const base64Image = reader.result.split(',')[1]; // Remove data:image/jpeg;base64,
+    
+    const response = await fetch('http://localhost:8000/detect-ingredients', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: base64Image,
+        max_meals: 3
+      })
+    });
+    
+    const data = await response.json();
+    console.log('Detected:', data.detected_ingredients);
+    console.log('Meals:', data.meals_used);
+  };
+}
+
+// Usage with file input
+document.getElementById('imageInput').addEventListener('change', (e) => {
+  detectIngredients(e.target.files[0]);
+});
+```
+
+#### Using cURL
+
+```bash
+# First, encode your image to base64
+IMAGE_BASE64=$(base64 -w 0 food_image.jpg)
+
+# Send request
+curl -X POST "http://localhost:8000/detect-ingredients" \
+  -H "Content-Type: application/json" \
+  -d "{\"image\": \"$IMAGE_BASE64\", \"max_meals\": 3}"
+```
+
+---
+
+### Chat Endpoint Examples
+
+#### Using Python
 
 ```python
 import requests
