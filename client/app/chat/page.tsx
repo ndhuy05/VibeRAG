@@ -7,6 +7,7 @@ import { ChatMessages } from "@/components/chat/ChatMessages";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { chatAPI } from "@/services/api";
 import type { Message, BackendMeal } from "@/types/chat";
+import { useChatHistory } from "@/hooks/useChatHistory";
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -14,11 +15,14 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const messageIdCounter = useRef(1);
 
-  const chatHistory = [
-    { id: 1, title: "Công thức nấu Phở Bò", timestamp: "2 giờ trước" },
-    { id: 2, title: "Cách làm Bánh mì Việt Nam", timestamp: "Hôm qua" },
-    { id: 3, title: "Món ăn chay cho người mới", timestamp: "3 ngày trước" },
-  ];
+  const {
+    conversations,
+    currentConversationId,
+    saveConversation,
+    loadConversation,
+    deleteConversation,
+    startNewConversation,
+  } = useChatHistory();
 
   // Helper function to extract steps from recipe text
   const extractSteps = (recipe: string): string[] => {
@@ -26,6 +30,41 @@ export default function ChatPage() {
       .split(/\r?\n/)
       .filter(step => step.trim().length > 0)
       .map(step => step.trim());
+  };
+
+  // Save conversation whenever messages change (debounced)
+  useEffect(() => {
+    if (messages.length > 0) {
+      const timer = setTimeout(() => {
+        saveConversation(messages);
+      }, 500); // Debounce 500ms
+
+      return () => clearTimeout(timer);
+    }
+  }, [messages, saveConversation]);
+
+  const handleNewChat = () => {
+    setMessages([]);
+    messageIdCounter.current = 1;
+    startNewConversation();
+  };
+
+  const handleSelectChat = (id: string) => {
+    const loadedMessages = loadConversation(id);
+    if (loadedMessages) {
+      setMessages(loadedMessages);
+      // Find max message ID to continue counter
+      const maxId = loadedMessages.reduce((max, msg) => Math.max(max, msg.id), 0);
+      messageIdCounter.current = maxId + 1;
+    }
+  };
+
+  const handleDeleteChat = (id: string) => {
+    deleteConversation(id);
+    // If deleting current conversation, start new one
+    if (currentConversationId === id) {
+      handleNewChat();
+    }
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -110,7 +149,14 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      <ChatSidebar isOpen={sidebarOpen} chatHistory={chatHistory} />
+      <ChatSidebar
+        isOpen={sidebarOpen}
+        chatHistory={conversations}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
+        currentChatId={currentConversationId}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <ChatHeader
@@ -118,7 +164,11 @@ export default function ChatPage() {
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <ChatMessages messages={messages} isLoading={isLoading} />
+        <ChatMessages
+          messages={messages}
+          isLoading={isLoading}
+          onSuggestedQuery={handleSendMessage}
+        />
 
         <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
       </div>

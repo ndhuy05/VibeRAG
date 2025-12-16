@@ -16,9 +16,10 @@ interface Message {
 interface ChatMessagesProps {
   messages: Message[];
   isLoading?: boolean;
+  onSuggestedQuery?: (query: string) => void;
 }
 
-export function ChatMessages({ messages, isLoading = false }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading = false, onSuggestedQuery }: ChatMessagesProps) {
   return (
     <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
       <div className="max-w-3xl mx-auto w-full px-4 py-8 space-y-6">
@@ -36,16 +37,28 @@ export function ChatMessages({ messages, isLoading = false }: ChatMessagesProps)
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl mt-8">
-              <div className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer">
+              <div
+                className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                onClick={() => onSuggestedQuery?.("Tìm món pasta Ý cho tôi")}
+              >
                 <p className="text-sm">🍝 "Tìm món pasta Ý cho tôi"</p>
               </div>
-              <div className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer">
+              <div
+                className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                onClick={() => onSuggestedQuery?.("Món gà nướng ngon nhất")}
+              >
                 <p className="text-sm">🍗 "Món gà nướng ngon nhất"</p>
               </div>
-              <div className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer">
+              <div
+                className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                onClick={() => onSuggestedQuery?.("Món ăn chay healthy")}
+              >
                 <p className="text-sm">🥗 "Món ăn chay healthy"</p>
               </div>
-              <div className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer">
+              <div
+                className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                onClick={() => onSuggestedQuery?.("Cách làm bánh ngọt")}
+              >
                 <p className="text-sm">🍰 "Cách làm bánh ngọt"</p>
               </div>
             </div>
