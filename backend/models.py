@@ -72,7 +72,6 @@ class ChatResponse(BaseModel):
     response: str = Field(..., description="AI-generated response text")
     meals_used: List[Meal] = Field(..., description="List of relevant meals found")
     scores: List[float] = Field(..., description="Similarity scores for each meal (0-1, higher is better)")
-    audio_path: Optional[str] = Field(None, description="Path to generated audio file (if available)")
 
     class Config:
         json_schema_extra = {
@@ -92,7 +91,44 @@ class ChatResponse(BaseModel):
                         "youtube_url": "https://www.youtube.com/watch?v=xxxxx"
                     }
                 ],
-                "scores": [0.95, 0.89, 0.82],
-                "audio_path": "audio/response_xxxxx.mp3"
+                "scores": [0.95, 0.89, 0.82]
+            }
+        }
+
+class TextToSpeechRequest(BaseModel):
+    """Request model for text-to-speech conversion"""
+    text: str = Field(
+        ...,
+        description="Text to convert to speech",
+        example="Here are some delicious chicken curry recipes..."
+    )
+    language: str = Field(
+        default="en-US",
+        description="Language code for speech generation",
+        example="en-US"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "text": "Here are some delicious chicken curry recipes you can try!",
+                "language": "en-US"
+            }
+        }
+
+class TextToSpeechResponse(BaseModel):
+    """Response model for text-to-speech conversion"""
+    audio_path: str = Field(..., description="Path to the generated audio file")
+    audio_url: str = Field(..., description="URL to access the audio file")
+    filename: str = Field(..., description="Name of the generated audio file")
+    text_length: int = Field(..., description="Length of the text that was converted")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "audio_path": "audio_output/response_1702987654.mp3",
+                "audio_url": "/audio/response_1702987654.mp3",
+                "filename": "response_1702987654.mp3",
+                "text_length": 52
             }
         }

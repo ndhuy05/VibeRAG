@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
-from models import ChatRequest, ChatResponse
+from models import ChatRequest, ChatResponse, TextToSpeechRequest, TextToSpeechResponse
 from vector_db import MealVectorDB
 from data_parser import parse_all_meals
 from gemini_service import GeminiService
@@ -77,6 +80,12 @@ async def startup_event():
             print("Index built and saved")
         else:
             print("Warning: No meals found to index")
+    
+    # Mount static files for audio output
+    audio_dir = "audio_output"
+    if os.path.exists(audio_dir):
+        app.mount("/audio", StaticFiles(directory=audio_dir), name="audio")
+        print(f"Mounted audio files from {audio_dir}")
 
 @app.post(
     "/chat",
@@ -134,19 +143,11 @@ async def chat_with_ai(request: ChatRequest):
             # No meals found - generate a simple response
             response_text = gemini_service.generate_simple_response(request.query)
             
-            # Automatically generate audio from response
-            try:
-                audio_path = tts_service.generate_audio(response_text)
-            except Exception as audio_error:
-                print(f"Warning: Audio generation failed: {audio_error}")
-                audio_path = None
-            
             return ChatResponse(
                 query=request.query,
                 response=response_text,
                 meals_used=[],
-                scores=[],
-                audio_path=audio_path
+                scores=[]
             )
         
         # Extract meals and scores
@@ -160,23 +161,59 @@ async def chat_with_ai(request: ChatRequest):
             scores=scores
         )
         
-        # Automatically generate audio from response
-        try:
-            audio_path = tts_service.generate_audio(response_text)
-        except Exception as audio_error:
-            print(f"Warning: Audio generation failed: {audio_error}")
-            audio_path = None
-        
         return ChatResponse(
             query=request.query,
             response=response_text,
             meals_used=meals,
-            scores=scores,
-            audio_path=audio_path
+            scores=scores
         )
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+
+@app.post(
+    "/text-to-speech",
+    response_model=TextToSpeechResponse,
+    summary="Convert text to speech",
+    description="""
+    Convert text to speech audio file. The frontend should call this endpoint
+    when the user clicks the audio icon to play the response.
+    
+    The text will be preprocessed to remove markdown formatting and expand
+    abbreviations for natural-sounding speech.
+    
+    Returns the path to the generated audio file which can be played immediately.
+    """,
+    response_description="Audio file information with path for playback",
+    tags=["Text-to-Speech"]
+)
+async def text_to_speech(request: TextToSpeechRequest):
+    """Convert text to speech on-demand"""
+    if not request.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    
+    try:
+        # Generate audio from the provided text
+        audio_path = tts_service.generate_audio(
+            text=request.text,
+            language_code=request.language
+        )
+        
+        # Extract filename from path
+        filename = os.path.basename(audio_path)
+        
+        # Generate URL for frontend to access the audio
+        audio_url = f"/audio/{filename}"
+        
+        return TextToSpeechResponse(
+            audio_path=audio_path,
+            audio_url=audio_url,
+            filename=filename,
+            text_length=len(request.text)
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS conversion failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

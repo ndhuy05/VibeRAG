@@ -72,9 +72,3 @@ class TextToAudioService:
         except Exception as e:
             print(f"[TTS Error] {str(e)}")
             raise
-
-
-def text_to_audio(text: str, output_filename: Optional[str] = None, 
-                 language_code: str = "en-US", **kwargs) -> str:
-    service = TextToAudioService()
-    return service.generate_audio(text, output_filename, language_code)
