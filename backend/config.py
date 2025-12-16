@@ -25,5 +25,5 @@ MAX_TOP_K = 20
 FAISS_INDEX_PATH.mkdir(exist_ok=True)
 
 # Gemini API settings
-GEMINI_API_KEY = "AIzaSyAdQg_J1Mc6rho5aQ4hqz5S2keTPIE99AY"
+GEMINI_API_KEY = "AIzaSyDbYCcHYUD6n3e6S_9QYTE_q_fdn2S_ML4"
 GEMINI_MODEL = "gemini-2.5-flash"

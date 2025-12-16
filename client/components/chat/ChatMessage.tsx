@@ -6,15 +6,17 @@ import { Bot, User, Volume2 } from "lucide-react";
 import { RecipeCard } from "./RecipeCard";
 import { NutritionInfo } from "./NutritionInfo";
 import { VideoEmbed } from "./VideoEmbed";
+import Image from "next/image";
 
 interface Message {
   id: number;
   role: "user" | "assistant";
-  type?: "text" | "recipe" | "nutrition" | "video";
+  type?: "text" | "recipe" | "nutrition" | "video" | "image";
   content?: string;
   recipe?: any;
   nutrition?: any;
   video?: any;
+  imageUrl?: string;
 }
 
 interface ChatMessageProps {
@@ -53,10 +55,23 @@ export function ChatMessage({ message, isFirstInGroup }: ChatMessageProps) {
         }`}
       >
         {message.role === "user" ? (
-          <div className="bg-muted/60 rounded-2xl px-4 py-3">
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </p>
+          <div className="bg-muted/60 rounded-2xl px-4 py-3 space-y-2">
+            {message.imageUrl && (
+              <div className="relative w-full max-w-xs rounded-lg overflow-hidden">
+                <Image
+                  src={message.imageUrl}
+                  alt="Uploaded image"
+                  width={300}
+                  height={300}
+                  className="object-cover"
+                />
+              </div>
+            )}
+            {message.content && (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                {message.content}
+              </p>
+            )}
           </div>
         ) : (
           <>

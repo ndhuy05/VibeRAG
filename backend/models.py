@@ -67,26 +67,6 @@ class ChatRequest(BaseModel):
         }
 
 class ChatResponse(BaseModel):
-<<<<<<< HEAD
-    """Response model for conversational chat"""
-    query: str
-    response: str
-    meals_used: List[Meal]
-    scores: List[float]
-
-class ImageDetectionRequest(BaseModel):
-    """Request model for image-based ingredient detection"""
-    image: str = Field(..., description="Base64-encoded image data")
-    max_meals: int = Field(default=3, ge=1, le=10, description="Number of meals to return")
-    category: Optional[str] = Field(default=None, description="Filter by category")
-
-class ImageDetectionResponse(BaseModel):
-    """Response model for image-based ingredient detection"""
-    detected_ingredients: List[str] = Field(..., description="List of ingredients detected in the image")
-    response: str = Field(..., description="AI-generated conversational response about the meals")
-    meals_used: List[Meal] = Field(..., description="List of meals found using detected ingredients")
-    scores: List[float] = Field(..., description="Similarity scores for each meal")
-=======
     """Chat response with AI-generated answer and relevant meals"""
     query: str = Field(..., description="Original user query")
     response: str = Field(..., description="AI-generated response text")
@@ -114,6 +94,19 @@ class ImageDetectionResponse(BaseModel):
                 "scores": [0.95, 0.89, 0.82]
             }
         }
+
+class ImageDetectionRequest(BaseModel):
+    """Request model for image-based ingredient detection"""
+    image: str = Field(..., description="Base64-encoded image data")
+    max_meals: int = Field(default=3, ge=1, le=10, description="Number of meals to return")
+    category: Optional[str] = Field(default=None, description="Filter by category")
+
+class ImageDetectionResponse(BaseModel):
+    """Response model for image-based ingredient detection"""
+    detected_ingredients: List[str] = Field(..., description="List of ingredients detected in the image")
+    response: str = Field(..., description="AI-generated conversational response about the meals")
+    meals_used: List[Meal] = Field(..., description="List of meals found using detected ingredients")
+    scores: List[float] = Field(..., description="Similarity scores for each meal")
 
 class TextToSpeechRequest(BaseModel):
     """Request model for text-to-speech conversion"""
@@ -152,4 +145,3 @@ class TextToSpeechResponse(BaseModel):
                 "text_length": 52
             }
         }
->>>>>>> f92b49997ed371f7a390ff61859450aecb7175c8

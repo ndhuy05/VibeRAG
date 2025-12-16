@@ -161,8 +161,15 @@ Return only the ingredient list, nothing else."""
             return ingredients
             
         except Exception as e:
-            print(f"Error detecting ingredients from image: {e}")
-            return []
+            error_msg = str(e)
+            print(f"Error detecting ingredients from image: {error_msg}")
+            # Re-raise with more context instead of returning empty list
+            if "403" in error_msg or "API key" in error_msg:
+                raise Exception(f"Gemini API authentication failed: {error_msg}")
+            elif "400" in error_msg:
+                raise Exception(f"Invalid image format or request: {error_msg}")
+            else:
+                raise Exception(f"Image processing failed: {error_msg}")
     
     def generate_simple_response(self, user_query: str) -> str:
         """

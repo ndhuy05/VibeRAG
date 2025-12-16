@@ -5,7 +5,7 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatMessages } from "@/components/chat/ChatMessages";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { chatAPI } from "@/services/api";
+import { chatAPI, imageAPI } from "@/services/api";
 import type { Message, BackendMeal } from "@/types/chat";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
@@ -67,31 +67,48 @@ export default function ChatPage() {
     }
   };
 
-  const handleSendMessage = async (messageText: string) => {
-    if (!messageText.trim()) return;
+  const handleSendMessage = async (messageText: string, imageFile?: File) => {
+    if (!messageText.trim() && !imageFile) return;
+
+    // Create image URL if image is provided
+    let imageUrl: string | undefined;
+    if (imageFile) {
+      imageUrl = URL.createObjectURL(imageFile);
+    }
 
     // Add user message
     const userMessage: Message = {
       id: messageIdCounter.current++,
       role: "user",
-      type: "text",
-      content: messageText,
+      type: imageFile ? "image" : "text",
+      content: messageText || (imageFile ? "Phát hiện nguyên liệu từ ảnh" : ""),
+      imageUrl: imageUrl,
     };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      // Call API
-      const response = await chatAPI.sendMessage(messageText);
+      // Call appropriate API based on whether image is provided
+      const response = imageFile
+        ? await imageAPI.detectIngredients(imageFile, 3)
+        : await chatAPI.sendMessage(messageText);
 
       // Add recipes if available
       if (response.meals_used && response.meals_used.length > 0) {
-        // Add AI response text - short and simple
+        // Add AI response text
+        let aiResponseText = `Đây là ${response.meals_used.length} món ăn phù hợp với yêu cầu của bạn:`;
+
+        // If image was used, show detected ingredients
+        if (imageFile && response.query.includes('Detected ingredients:')) {
+          const ingredients = response.query.replace('Detected ingredients: ', '');
+          aiResponseText = `🔍 **Nguyên liệu phát hiện được:** ${ingredients}\n\n${aiResponseText}`;
+        }
+
         const aiTextMessage: Message = {
           id: messageIdCounter.current++,
           role: "assistant",
           type: "text",
-          content: `Đây là ${response.meals_used.length} món ăn phù hợp với yêu cầu của bạn:`,
+          content: aiResponseText,
         };
         setMessages(prev => [...prev, aiTextMessage]);
 

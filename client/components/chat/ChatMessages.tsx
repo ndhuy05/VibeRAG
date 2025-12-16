@@ -6,11 +6,12 @@ import { Loader2, ChefHat, Sparkles } from "lucide-react";
 interface Message {
   id: number;
   role: "user" | "assistant";
-  type?: "text" | "recipe" | "nutrition" | "video";
+  type?: "text" | "recipe" | "nutrition" | "video" | "image";
   content?: string;
   recipe?: any;
   nutrition?: any;
   video?: any;
+  imageUrl?: string;
 }
 
 interface ChatMessagesProps {

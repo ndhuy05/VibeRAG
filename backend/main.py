@@ -4,11 +4,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-<<<<<<< HEAD
-from models import ChatRequest, ChatResponse, ImageDetectionRequest, ImageDetectionResponse
-=======
-from models import ChatRequest, ChatResponse, TextToSpeechRequest, TextToSpeechResponse
->>>>>>> f92b49997ed371f7a390ff61859450aecb7175c8
+from models import (
+    ChatRequest,
+    ChatResponse,
+    ImageDetectionRequest,
+    ImageDetectionResponse,
+    TextToSpeechRequest,
+    TextToSpeechResponse
+)
 from vector_db import MealVectorDB
 from data_parser import parse_all_meals
 from gemini_service import GeminiService
@@ -175,7 +178,6 @@ async def chat_with_ai(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
-<<<<<<< HEAD
 @app.post("/detect-ingredients", response_model=ImageDetectionResponse)
 async def detect_ingredients(request: ImageDetectionRequest):
     """
@@ -196,11 +198,25 @@ async def detect_ingredients(request: ImageDetectionRequest):
     
     try:
         # Step 1: Detect ingredients from image using Gemini Vision
-        detected_ingredients = gemini_service.detect_ingredients_from_image(request.image)
-        
+        try:
+            detected_ingredients = gemini_service.detect_ingredients_from_image(request.image)
+        except Exception as vision_error:
+            # Handle Gemini Vision API errors
+            error_msg = str(vision_error)
+            if "API key" in error_msg or "403" in error_msg:
+                raise HTTPException(
+                    status_code=503,
+                    detail="Image detection service is temporarily unavailable. Please try again later or use text search instead."
+                )
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Failed to process image: {error_msg}"
+                )
+
         if not detected_ingredients:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Could not detect any ingredients in the image. Please upload a clearer food image."
             )
         
@@ -247,7 +263,6 @@ async def detect_ingredients(request: ImageDetectionRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ingredient detection failed: {str(e)}")
-=======
 @app.post(
     "/text-to-speech",
     response_model=TextToSpeechResponse,
@@ -291,7 +306,6 @@ async def text_to_speech(request: TextToSpeechRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"TTS conversion failed: {str(e)}")
->>>>>>> f92b49997ed371f7a390ff61859450aecb7175c8
 
 if __name__ == "__main__":
     import uvicorn

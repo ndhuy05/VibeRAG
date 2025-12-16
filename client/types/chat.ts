@@ -1,11 +1,12 @@
 export interface Message {
   id: number;
   role: "user" | "assistant";
-  type?: "text" | "recipe" | "nutrition" | "video";
+  type?: "text" | "recipe" | "nutrition" | "video" | "image";
   content?: string;
   recipe?: Recipe;
   nutrition?: Nutrition;
   video?: Video;
+  imageUrl?: string;
 }
 
 export interface Recipe {
