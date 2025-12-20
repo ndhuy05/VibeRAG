@@ -10,12 +10,15 @@ from models import (
     ImageDetectionRequest,
     ImageDetectionResponse,
     TextToSpeechRequest,
-    TextToSpeechResponse
+    TextToSpeechResponse,
+    WeatherRequest,
+    WeatherResponse
 )
 from vector_db import MealVectorDB
 from data_parser import parse_all_meals
 from gemini_service import GeminiService
 from text_audio import TextToAudioService
+from weather_service import get_weather_service
 import config
 
 # Initialize FastAPI app
@@ -306,6 +309,108 @@ async def text_to_speech(request: TextToSpeechRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"TTS conversion failed: {str(e)}")
+
+@app.post(
+    "/weather-suggestions",
+    response_model=WeatherResponse,
+    summary="Get meal suggestions based on current weather",
+    description="""
+    Get personalized meal suggestions based on the current weather at a specific location.
+    
+    The system:
+    - Fetches real-time weather data from OpenWeatherMap API
+    - Saves weather data as a chunkable text file
+    - Analyzes temperature and weather conditions
+    - Suggests appropriate meal categories (hot soups for cold weather, light salads for hot weather, etc.)
+    - Searches the meal database for matching recipes
+    - Generates AI recommendations tailored to the weather
+    
+    Example: On a cold rainy day, you'll get warm soup and stew recommendations.
+    On a hot sunny day, you'll get light salads and refreshing meals.
+    """,
+    response_description="Weather information with AI-recommended meals suitable for the current conditions",
+    tags=["Weather"]
+)
+async def get_weather_based_suggestions(request: WeatherRequest):
+    """Get meal suggestions based on current weather at a location"""
+    
+    try:
+        # Get weather service instance with Gemini integration
+        weather_service = get_weather_service(gemini_service)
+        
+        # Fetch weather data and save to files
+        weather_result = weather_service.get_weather_and_save(
+            lat=request.latitude,
+            lon=request.longitude,
+            location_name=request.location_name
+        )
+        
+        if not weather_result:
+            raise HTTPException(
+                status_code=503,
+                detail="Failed to fetch weather data. Please check your API key and try again."
+            )
+        
+        weather_data = weather_result["weather_data"]
+        json_file = weather_result["json_file"]
+        text_file = weather_result["text_file"]
+        
+        # Get weather-based meal suggestions
+        suggestions = weather_service.suggest_meal_categories_for_weather(weather_data)
+        
+        # Extract location and weather info
+        location = weather_data.get("name", request.location_name or "Unknown")
+        temp = weather_data.get("main", {}).get("temp", 0)
+        weather_desc = weather_data.get("weather", [{}])[0].get("description", "")
+        
+        # Search for meals based on weather recommendations
+        recommended_keywords = suggestions["recommended_keywords"]
+        
+        # Create a search query combining keywords
+        search_query = " ".join(recommended_keywords[:3])  # Use top 3 keywords
+        
+        # Search for relevant meals
+        results = vector_db.search(
+            query_ingredients=[search_query],
+            top_k=request.max_meals,
+            category_filter=None
+        )
+        
+        meals = []
+        scores = []
+        
+        if results:
+            meals = [meal for meal, _ in results]
+            scores = [score for _, score in results]
+        
+        # Generate AI response using Gemini with weather context
+        ai_response = weather_service.generate_weather_meal_response(
+            weather_data=weather_data,
+            meals=meals,
+            scores=scores,
+            location=location
+        )
+        
+        return WeatherResponse(
+            location=location,
+            temperature=temp,
+            weather_condition=suggestions["condition"],
+            weather_description=weather_desc,
+            suggestions=suggestions,
+            recommended_meals=meals,
+            scores=scores,
+            json_file=json_file,
+            text_file=text_file,
+            ai_response=ai_response
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Weather-based suggestions failed: {str(e)}"
+        )
 
 if __name__ == "__main__":
     import uvicorn

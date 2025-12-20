@@ -145,3 +145,54 @@ class TextToSpeechResponse(BaseModel):
                 "text_length": 52
             }
         }
+
+class WeatherRequest(BaseModel):
+    """Request model for weather-based meal suggestions"""
+    latitude: float = Field(..., description="Latitude coordinate", example=40.7128)
+    longitude: float = Field(..., description="Longitude coordinate", example=-74.0060)
+    location_name: Optional[str] = Field(None, description="Optional location name", example="New York")
+    max_meals: int = Field(default=5, ge=1, le=10, description="Number of meals to suggest")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "location_name": "New York",
+                "max_meals": 5
+            }
+        }
+
+class WeatherResponse(BaseModel):
+    """Response model for weather-based meal suggestions"""
+    location: str = Field(..., description="Location name")
+    temperature: float = Field(..., description="Temperature in Celsius")
+    weather_condition: str = Field(..., description="Weather condition (hot/cold/rainy/etc)")
+    weather_description: str = Field(..., description="Detailed weather description")
+    suggestions: Dict = Field(..., description="Meal suggestions based on weather")
+    recommended_meals: List[Meal] = Field(..., description="List of recommended meals for this weather")
+    scores: List[float] = Field(..., description="Similarity scores for recommended meals")
+    json_file: str = Field(..., description="Path to saved weather JSON data file")
+    text_file: str = Field(..., description="Path to saved weather human-readable text file")
+    ai_response: str = Field(..., description="AI-generated response about weather and meal suggestions")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "location": "New York",
+                "temperature": 5.2,
+                "weather_condition": "cold",
+                "weather_description": "light snow",
+                "suggestions": {
+                    "recommended_categories": ["Soup", "Beef", "Pork"],
+                    "recommended_keywords": ["soup", "stew", "hot", "warm"],
+                    "reasoning": "It's cold outside. Warm meals will keep you cozy."
+                },
+                "recommended_meals": [],
+                "scores": [],
+                "json_file": "backend/data/weather/NewYork_20231215_143022.json",
+                "text_file": "backend/data/weather/NewYork_20231215_143022.txt",
+                "ai_response": "Based on the cold weather in New York..."
+            }
+        }
+

@@ -4,6 +4,7 @@ from pathlib import Path
 # Base directory
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
+WEATHER_DATA_DIR = DATA_DIR / "weather"
 
 # FAISS settings
 FAISS_INDEX_PATH = BASE_DIR / "faiss_index"
@@ -25,5 +26,9 @@ MAX_TOP_K = 20
 FAISS_INDEX_PATH.mkdir(exist_ok=True)
 
 # Gemini API settings
-GEMINI_API_KEY = "AIzaSyDbYCcHYUD6n3e6S_9QYTE_q_fdn2S_ML4"
+GEMINI_API_KEY = "AIzaSyDlqC10telp1QmUozXO3OGhEvueJKWoOgE"
 GEMINI_MODEL = "gemini-2.5-flash"
+
+# OpenWeatherMap API settings
+OPENWEATHER_API_KEY = "b5cf2546fbd3405ede747dfc780538c9"
+# Get your free API key from: https://openweathermap.org/api

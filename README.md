@@ -113,6 +113,8 @@ VibeRAG/
 - ✅ Detailed ingredients and cooking instructions
 - ✅ YouTube video tutorials
 - ✅ Text-to-speech audio responses
+- ✅ Image-based ingredient detection
+- ✅ **Weather-based meal suggestions** ⛅🍲
 - ✅ Category filtering (Chicken, Beef, Vegetarian, etc.)
 - ✅ Responsive design
 - ✅ Real-time chat interface
@@ -122,12 +124,35 @@ VibeRAG/
 **Backend:** Create `.env` in `backend/` folder:
 ```bash
 GEMINI_API_KEY=your_gemini_api_key_here
+OPENWEATHER_API_KEY=your_openweather_api_key_here  # For weather-based suggestions
 ```
+
+Get your free OpenWeatherMap API key from: https://openweathermap.org/api
 
 **Frontend:** `.env.local` already configured:
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8001
 ```
+
+## 🌤️ Weather-Based Meal Suggestions (NEW!)
+
+Get personalized meal recommendations based on current weather conditions:
+
+```bash
+# Quick start
+cd backend
+python test_weather_suggestions.py
+```
+
+**Features:**
+- 🌡️ Real-time weather data from OpenWeatherMap API
+- 🍲 Smart meal suggestions based on temperature and conditions
+- 💾 Weather data saved as chunkable text files
+- 🤖 AI-powered recommendations
+
+**See detailed guides:**
+- [Quick Start Guide](backend/WEATHER_QUICKSTART.md) - Get started in 5 minutes
+- [Full API Documentation](backend/WEATHER_API_GUIDE.md) - Complete reference
 
 ## 📝 API Documentation
 
