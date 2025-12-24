@@ -148,8 +148,8 @@ class TextToSpeechResponse(BaseModel):
 
 class WeatherRequest(BaseModel):
     """Request model for weather-based meal suggestions"""
-    latitude: float = Field(..., description="Latitude coordinate", example=40.7128)
-    longitude: float = Field(..., description="Longitude coordinate", example=-74.0060)
+    latitude: Optional[float] = Field(None, description="Latitude coordinate", example=40.7128)
+    longitude: Optional[float] = Field(None, description="Longitude coordinate", example=-74.0060)
     location_name: Optional[str] = Field(None, description="Optional location name", example="New York")
     max_meals: int = Field(default=5, ge=1, le=10, description="Number of meals to suggest")
 

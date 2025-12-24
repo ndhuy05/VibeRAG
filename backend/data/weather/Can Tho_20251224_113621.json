@@ -1,0 +1,45 @@
+{
+  "coord": {
+    "lon": 105.7833,
+    "lat": 10.0333
+  },
+  "weather": [
+    {
+      "id": 803,
+      "main": "Clouds",
+      "description": "broken clouds",
+      "icon": "04d"
+    }
+  ],
+  "base": "stations",
+  "main": {
+    "temp": 28.99,
+    "feels_like": 35.61,
+    "temp_min": 28.99,
+    "temp_max": 28.99,
+    "pressure": 1009,
+    "humidity": 84,
+    "sea_level": 1009,
+    "grnd_level": 1008
+  },
+  "visibility": 8000,
+  "wind": {
+    "speed": 1.03,
+    "deg": 0
+  },
+  "clouds": {
+    "all": 75
+  },
+  "dt": 1766550927,
+  "sys": {
+    "type": 1,
+    "id": 9305,
+    "country": "VN",
+    "sunrise": 1766531410,
+    "sunset": 1766572942
+  },
+  "timezone": 25200,
+  "id": 1586203,
+  "name": "Can Tho",
+  "cod": 200
+}

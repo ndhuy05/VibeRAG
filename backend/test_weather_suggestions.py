@@ -11,7 +11,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8001"
 
 def display_weather_results(data: dict, location_name: str, lat: float, lon: float):
     """

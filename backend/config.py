@@ -16,7 +16,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 # API settings
 API_HOST = "0.0.0.0"
-API_PORT = 8000
+API_PORT = 8001
 
 # Search settings
 DEFAULT_TOP_K = 5

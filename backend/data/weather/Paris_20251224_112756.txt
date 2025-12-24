@@ -1,0 +1,31 @@
+Weather Report for Paris
+            Location: Paris, FR
+            Coordinates: Latitude 48.8534, Longitude 2.3488
+            Date and Time: 2025-12-24 11:26:42
+            Timezone: UTC+1
+
+            Current Conditions:
+            ------------------
+            Weather: Clouds - overcast clouds
+            Temperature: 5.56°C
+            Feels Like: 0.83°C
+            Temperature Range: 5.03°C to 6.16°C
+            Humidity: 74%
+            Pressure: 1020 hPa
+            Visibility: 10000 meters
+
+            Wind Conditions:
+            ---------------
+            Wind Speed: 8.23 m/s
+            Wind Direction: 60°
+            Wind Gust: Not reported m/s
+
+            Cloud Coverage:
+            --------------
+            Cloudiness: 100%
+
+            Additional Information:
+            ----------------------
+            Sunrise: 14:42:42
+            Sunset: 22:57:35
+            

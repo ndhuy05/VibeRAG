@@ -1,0 +1,31 @@
+Weather Report for Can Tho
+            Location: Can Tho, VN
+            Coordinates: Latitude 10.0333, Longitude 105.7833
+            Date and Time: 2025-12-24 11:35:27
+            Timezone: UTC+7
+
+            Current Conditions:
+            ------------------
+            Weather: Clouds - broken clouds
+            Temperature: 28.99°C
+            Feels Like: 35.61°C
+            Temperature Range: 28.99°C to 28.99°C
+            Humidity: 84%
+            Pressure: 1009 hPa
+            Visibility: 8000 meters
+
+            Wind Conditions:
+            ---------------
+            Wind Speed: 1.03 m/s
+            Wind Direction: 0°
+            Wind Gust: Not reported m/s
+
+            Cloud Coverage:
+            --------------
+            Cloudiness: 75%
+
+            Additional Information:
+            ----------------------
+            Sunrise: 06:10:10
+            Sunset: 17:42:22
+            

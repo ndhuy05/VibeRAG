@@ -22,22 +22,29 @@ class WeatherService:
         self.weather_data_dir.mkdir(exist_ok=True)
         self.gemini_service = gemini_service
         
-    def fetch_weather(self, lat: float, lon: float) -> Optional[Dict[str, Any]]:
+    def fetch_weather(self, lat: float = None, lon: float = None, city_name: str = None) -> Optional[Dict[str, Any]]:
         """
         Fetch weather data from OpenWeatherMap API
         Args:
-            lat: Latitude
-            lon: Longitude
+            lat: Latitude (optional)
+            lon: Longitude (optional)
+            city_name: City name (optional, used if lat/lon not provided)
         Returns:
             Dictionary containing weather data or None if request fails
         """
         try:
             params = {
-                "lat": lat,
-                "lon": lon,
                 "appid": self.api_key,
-                "units": "metric"  # Use metric units for temperature
+                "units": "metric"
             }
+            
+            if lat is not None and lon is not None:
+                params["lat"] = lat
+                params["lon"] = lon
+            elif city_name:
+                params["q"] = city_name
+            else:
+                raise ValueError("Either coordinates (lat, lon) or city_name must be provided")
             
             response = requests.get(self.base_url, params=params, timeout=10)
             response.raise_for_status()
@@ -124,22 +131,35 @@ class WeatherService:
             "text_file": str(text_filepath)
         }
     
-    def get_weather_and_save(self, lat: float, lon: float, location_name: str = None) -> Optional[Dict[str, Any]]:
+    def get_weather_and_save(self, lat: float = None, lon: float = None, location_name: str = None) -> Optional[Dict[str, Any]]:
         """
         Fetch weather data and save it to separate JSON and text files
         
         Args:
-            lat: Latitude
-            lon: Longitude
-            location_name: Optional custom location name
+            lat: Latitude (optional)
+            lon: Longitude (optional)
+            location_name: Optional custom location name or query
             
         Returns:
             Dictionary with weather data and file paths
         """
-        weather_data = self.fetch_weather(lat, lon)
+        # If lat/lon are not provided but location_name is, use location_name as query
+        # If lat/lon PROVIDED, use them (and location_name is just for display/saving)
+        
+        if lat is not None and lon is not None:
+             weather_data = self.fetch_weather(lat=lat, lon=lon)
+        elif location_name:
+            weather_data = self.fetch_weather(city_name=location_name)
+        else:
+            return None
         
         if weather_data:
-            file_paths = self.save_weather_to_file(weather_data, location_name)
+            # If we queried by name, ensure we have a good location name for the file
+            save_name = location_name
+            if not save_name and weather_data.get("name"):
+                 save_name = weather_data.get("name")
+            
+            file_paths = self.save_weather_to_file(weather_data, save_name)
             return {
                 "weather_data": weather_data,
                 "json_file": file_paths["json_file"],

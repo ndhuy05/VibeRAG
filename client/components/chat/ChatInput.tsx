@@ -6,13 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { WeatherButton } from "./WeatherButton";
 
 interface ChatInputProps {
   onSendMessage?: (message: string, image?: File) => void;
+  onWeatherRequest?: (location: string) => void;
   disabled?: boolean;
 }
 
-export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onWeatherRequest, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
@@ -56,6 +58,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               />
             )}
             <VoiceRecorder onRecordingComplete={handleVoiceRecording} />
+            <WeatherButton onGetWeather={(loc) => onWeatherRequest?.(loc)} disabled={disabled} />
           </div>
 
           {/* Textarea */}

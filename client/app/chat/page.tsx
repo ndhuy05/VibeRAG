@@ -5,7 +5,7 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatMessages } from "@/components/chat/ChatMessages";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { chatAPI, imageAPI } from "@/services/api";
+import { chatAPI, imageAPI, weatherAPI } from "@/services/api";
 import type { Message, BackendMeal } from "@/types/chat";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
@@ -67,7 +67,79 @@ export default function ChatPage() {
     }
   };
 
+  const handleWeatherRequest = async (location: string) => {
+    // Add user message
+    const userMessage: Message = {
+      id: messageIdCounter.current++,
+      role: "user",
+      type: "text",
+      content: `Gợi ý món ăn cho thời tiết ở ${location}`,
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await weatherAPI.getSuggestions(location);
+
+      // Add AI response text
+      let aiResponseText = `🌡️ **Thời tiết tại ${response.location}:** ${response.temperature}°C, ${response.weather_description} (${response.weather_condition})\n\n${response.ai_response}`;
+
+      const aiTextMessage: Message = {
+        id: messageIdCounter.current++,
+        role: "assistant",
+        type: "text",
+        content: aiResponseText,
+      };
+      setMessages(prev => [...prev, aiTextMessage]);
+
+      // Add recipes
+      if (response.recommended_meals) {
+        response.recommended_meals.forEach((meal: BackendMeal) => {
+          // Add recipe card
+          const recipeMessage: Message = {
+            id: messageIdCounter.current++,
+            role: "assistant",
+            type: "recipe",
+            recipe: {
+              title: meal.name,
+              ingredients: meal.ingredients.map(ing => `${ing.quantity} ${ing.name}`),
+              steps: extractSteps(meal.recipe),
+              difficulty: "Trung bình",
+            },
+          };
+          setMessages(prev => [...prev, recipeMessage]);
+
+          // Add video if available
+          if (meal.youtube_url) {
+            const videoMessage: Message = {
+              id: messageIdCounter.current++,
+              role: "assistant",
+              type: "video",
+              video: {
+                url: meal.youtube_url,
+              },
+            };
+            setMessages(prev => [...prev, videoMessage]);
+          }
+        });
+      }
+
+    } catch (error) {
+      console.error("Error getting weather suggestions:", error);
+      const errorMessage: Message = {
+        id: messageIdCounter.current++,
+        role: "assistant",
+        type: "text",
+        content: "Xin lỗi, không thể lấy thông tin thời tiết lúc này. Hãy kiểm tra tên địa điểm và thử lại.",
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = async (messageText: string, imageFile?: File) => {
+
     if (!messageText.trim() && !imageFile) return;
 
     // Create image URL if image is provided
@@ -187,7 +259,7 @@ export default function ChatPage() {
           onSuggestedQuery={handleSendMessage}
         />
 
-        <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        <ChatInput onSendMessage={handleSendMessage} onWeatherRequest={handleWeatherRequest} disabled={isLoading} />
       </div>
     </div>
   );

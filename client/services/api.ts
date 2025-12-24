@@ -104,3 +104,30 @@ export const imageAPI = {
     }
   },
 };
+
+export const weatherAPI = {
+  async getSuggestions(locationName: string, maxMeals: number = 3): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/weather-suggestions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          location_name: locationName,
+          max_meals: maxMeals,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Weather API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error calling weather API:', error);
+      throw error;
+    }
+  },
+};

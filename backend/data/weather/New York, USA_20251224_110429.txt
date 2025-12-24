@@ -1,0 +1,31 @@
+Weather Report for New York
+            Location: New York, US
+            Coordinates: Latitude 40.7127, Longitude -74.006
+            Date and Time: 2025-12-24 11:00:02
+            Timezone: UTC-5
+
+            Current Conditions:
+            ------------------
+            Weather: Clouds - overcast clouds
+            Temperature: 3.42°C
+            Feels Like: -0.96°C
+            Temperature Range: 1.83°C to 4.01°C
+            Humidity: 86%
+            Pressure: 1014 hPa
+            Visibility: 10000 meters
+
+            Wind Conditions:
+            ---------------
+            Wind Speed: 5.66 m/s
+            Wind Direction: 220°
+            Wind Gust: Not reported m/s
+
+            Cloud Coverage:
+            --------------
+            Cloudiness: 100%
+
+            Additional Information:
+            ----------------------
+            Sunrise: 19:17:38
+            Sunset: 04:32:44
+            
