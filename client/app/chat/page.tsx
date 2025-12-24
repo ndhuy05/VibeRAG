@@ -21,6 +21,9 @@ export default function ChatPage() {
     saveConversation,
     loadConversation,
     deleteConversation,
+    pinConversation,
+    renameConversation,
+    reorderConversations,
     startNewConversation,
   } = useChatHistory();
 
@@ -65,6 +68,23 @@ export default function ChatPage() {
     if (currentConversationId === id) {
       handleNewChat();
     }
+  };
+
+  const handlePinChat = (id: string) => {
+    pinConversation(id);
+  };
+
+  const handleRenameChat = (id: string, newTitle: string) => {
+    renameConversation(id, newTitle);
+  };
+
+  const handleShareChat = (id: string) => {
+    // TODO: Implement share functionality
+    console.log('Share chat:', id);
+  };
+
+  const handleReorderChats = (reordered: any[]) => {
+    reorderConversations(reordered.map(c => c.id));
   };
 
   const handleWeatherRequest = async (location: string) => {
@@ -244,6 +264,10 @@ export default function ChatPage() {
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
+        onPinChat={handlePinChat}
+        onRenameChat={handleRenameChat}
+        onShareChat={handleShareChat}
+        onReorderChats={handleReorderChats}
         currentChatId={currentConversationId}
       />
 
@@ -251,6 +275,23 @@ export default function ChatPage() {
         <ChatHeader
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          conversationTitle={
+            currentConversationId
+              ? conversations.find(c => c.id === currentConversationId)?.title
+              : undefined
+          }
+          conversationId={currentConversationId}
+          onPinChat={handlePinChat}
+          onRenameChat={(id) => {
+            const conversation = conversations.find(c => c.id === id);
+            if (!conversation) return;
+            const newTitle = prompt('Nhập tên mới cho cuộc trò chuyện:', conversation.title);
+            if (newTitle && newTitle.trim()) {
+              renameConversation(id, newTitle.trim());
+            }
+          }}
+          onShareChat={handleShareChat}
+          onDeleteChat={handleDeleteChat}
         />
 
         <ChatMessages

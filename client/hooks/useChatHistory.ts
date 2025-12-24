@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Message } from '@/types/chat';
 
 export interface ChatConversation {
@@ -6,6 +6,8 @@ export interface ChatConversation {
   title: string;
   timestamp: string;
   messages: Message[];
+  pinned?: boolean;
+  order?: number;
 }
 
 const STORAGE_KEY = 'meal-chat-history';
@@ -90,11 +92,11 @@ export function useChatHistory() {
       prev.map(conv =>
         conv.id === id
           ? {
-              ...conv,
-              title: generateTitle(messages),
-              timestamp: formatTimestamp(new Date()),
-              messages,
-            }
+            ...conv,
+            title: generateTitle(messages),
+            timestamp: formatTimestamp(new Date()),
+            messages,
+          }
           : conv
       )
     );
@@ -113,11 +115,11 @@ export function useChatHistory() {
         return prev.map(conv =>
           conv.id === currentConversationId
             ? {
-                ...conv,
-                title: generateTitle(messages),
-                timestamp: formatTimestamp(new Date()),
-                messages,
-              }
+              ...conv,
+              // Keep existing title, don't regenerate
+              timestamp: formatTimestamp(new Date()),
+              messages,
+            }
             : conv
         );
       } else {
@@ -159,22 +161,71 @@ export function useChatHistory() {
     }
   }, [currentConversationId]);
 
+  // Pin/unpin conversation
+  const pinConversation = useCallback((id: string) => {
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === id
+          ? { ...conv, pinned: !conv.pinned }
+          : conv
+      ).sort((a, b) => {
+        // Sort pinned conversations to the top
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return 0;
+      })
+    );
+  }, []);
+
+  // Rename conversation
+  const renameConversation = useCallback((id: string, newTitle: string) => {
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === id
+          ? { ...conv, title: newTitle }
+          : conv
+      )
+    );
+  }, []);
+
+  // Reorder conversations (for drag and drop)
+  const reorderConversations = useCallback((reorderedIds: string[]) => {
+    setConversations(prev => {
+      // Create a map for quick lookup
+      const convMap = new Map(prev.map(conv => [conv.id, conv]));
+
+      // Rebuild the list in the new order, preserving all data
+      const reordered: ChatConversation[] = [];
+      reorderedIds.forEach((id, index) => {
+        const conv = convMap.get(id);
+        if (conv) {
+          reordered.push({ ...conv, order: index });
+          convMap.delete(id);
+        }
+      });
+
+      // Add any remaining conversations that weren't in the reordered list
+      convMap.forEach(conv => reordered.push(conv));
+
+      return reordered;
+    });
+  }, []);
+
   // Start new conversation
   const startNewConversation = useCallback(() => {
     setCurrentConversationId(null);
   }, []);
 
-  // Get conversation list for sidebar
-  const getConversationList = useCallback(() => {
+  // Memoize conversation list
+  const conversationList = useMemo(() => {
     return conversations.map(conv => ({
       id: conv.id,
       title: conv.title,
       timestamp: conv.timestamp,
+      pinned: conv.pinned,
+      order: conv.order,
     }));
   }, [conversations]);
-
-  // Memoize conversation list
-  const conversationList = getConversationList();
 
   return {
     conversations: conversationList,
@@ -182,6 +233,9 @@ export function useChatHistory() {
     saveConversation,
     loadConversation,
     deleteConversation,
+    pinConversation,
+    renameConversation,
+    reorderConversations,
     startNewConversation,
   };
 }
