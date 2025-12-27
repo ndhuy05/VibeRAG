@@ -26,7 +26,7 @@ MAX_TOP_K = 20
 FAISS_INDEX_PATH.mkdir(exist_ok=True)
 
 # Gemini API settings
-GEMINI_API_KEY = "AIzaSyDlqC10telp1QmUozXO3OGhEvueJKWoOgE"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = "gemini-2.5-flash"
 
 # OpenWeatherMap API settings
